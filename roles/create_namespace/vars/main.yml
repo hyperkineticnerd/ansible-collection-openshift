@@ -1,0 +1,5 @@
+---
+# vars file for create_namespace
+create_namespace_name: ""
+create_namespace_labels: {}
+create_namespace_annotations: {}

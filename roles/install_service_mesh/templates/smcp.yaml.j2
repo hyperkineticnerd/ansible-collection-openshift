@@ -1,0 +1,34 @@
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  name: basic
+  namespace: istio-system
+spec:
+  addons:
+    grafana:
+      enabled: true
+    jaeger:
+      install:
+        storage:
+          type: Memory
+    kiali:
+      enabled: true
+    prometheus:
+      enabled: true
+  runtime:
+    defaults:
+      pod:
+        nodeSelector:
+          node-role.kubernets.io/infra: ""
+        tolerations:
+          - effect: NoSchedule
+            key: node-role.kubernetes.io/infra
+            value: reserved
+          - effect: NoExecute
+            key: node-role.kubernetes.io/infra
+            value: reserved
+  security:
+    controlPlane:
+      mtls: true
+  version: v2.1
+status: {}

@@ -1,0 +1,6 @@
+---
+- name: Check for Namespace
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: istio-system

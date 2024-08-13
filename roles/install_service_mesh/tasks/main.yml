@@ -1,0 +1,36 @@
+---
+# tasks file for install_service_mesh
+- name: Prerequisite | Namespace
+  import_tasks: check_namespace.yml
+
+- name: Prerequisite | Kiali
+  import_tasks: check_kiali.yml
+
+- name: Prerequisite | Jaeger
+  import_tasks: check_jaeger.yml
+
+- name: Create Namespace
+  kubernetes.core.k8s:
+    state: present
+    template: namespace.yaml.j2
+
+- name: Create OperatorGroup
+  kubernetes.core.k8s:
+    state: present
+    template: namespace.yaml.j2
+
+- name: Create Subscription
+  kubernetes.core.k8s:
+    state: present
+    template: namespace.yaml.j2
+
+- name: Create SMCP
+  kubernetes.core.k8s:
+    state: present
+    template: namespace.yaml.j2
+
+- name: Create SMMR
+  kubernetes.core.k8s:
+    state: present
+    template: namespace.yaml.j2
+

@@ -1,0 +1,27 @@
+---
+- name: Check for Jaeger Operator install
+  block:
+    - name: Check for Subscription
+      kubernetes.core.k8s_info:
+        api_version: operators.coreos.com/v1alpha1
+        kind: Subscription
+        name: jaeger
+        namespace: openshift-operators
+      register: subscription_jaeger
+
+    - name: Get current installed CSV
+      debug:
+        var: subscription_jaeger.resources.status.installedCSV 
+
+    - name: Get CSV
+      kubernetes.core.k8s_info:
+        api_version: operators.coreos.com/v1alpha1
+        kind: ClusterServiceVersion
+        name: "{{ subscription_jaeger.resources.status.installedCSV }}"
+        namespace: openshift-operators
+      register: csv_jaeger
+
+    - name: Get CSV Status
+      ansible.builtin.assert:
+        that:
+          - "csv_jaeger.resources.status.phase == 'Succeeded'"
