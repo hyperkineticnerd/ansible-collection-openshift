@@ -7,33 +7,21 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: butane
+module: approve_csr
 
-short_description: Ansible Module for interfacing with Butane/Ignition
+short_description: Ansible Module for approving OpenShift Certificate Signing Requests
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
 version_added: "1.0.0"
 
-description: When working with Red Hat CoreOS and Red Hat OpenShift,
-    utilizing Butane keeps configuration human-readable and machine-processable.
-    Butane is a utility to convert from YAML-based Butane into JSON-based Ignition.
+description: When working with Red Hat OpenShift, sometimes a CSR needs to be approved.
 
 options:
-    src:
-        description: Butane configuration to be converted.
+    name:
+        description: Name of the CSR to approve.
         required: true
         type: str
-    dest:
-        description: MachineConfig/Ignition output file
-            - If 'raw' is set, produce an Ignition file.
-            - By default, produce a MachineConfig.
-        required: false
-        type: str
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-# extends_documentation_fragment:
-#     - my_namespace.my_collection.my_doc_fragment_name
 
 author:
     - Sean Nelson (@hyperkineticnerd)
@@ -42,18 +30,18 @@ author:
 EXAMPLES = r'''
 # Pass in a message
 - name: Test with a message
-  hyperkineticnerd.openshift.butane:
+  hyperkineticnerd.openshift.approve_csr:
     name: hello world
 
 # pass in a message and have changed true
 - name: Test with a message and changed output
-  hyperkineticnerd.openshift.butane:
+  hyperkineticnerd.openshift.approve_csr:
     name: hello world
     new: true
 
 # fail the module
 - name: Test failure of the module
-  hyperkineticnerd.openshift.butane:
+  hyperkineticnerd.openshift.approve_csr:
     name: fail me
 '''
 
@@ -72,7 +60,6 @@ message:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-import subprocess
 
 
 def run_module():

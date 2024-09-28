@@ -5,39 +5,45 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+
 DOCUMENTATION = r'''
 ---
-module: butane
+module: openshift_install
 
-short_description: Ansible Module for interfacing with Butane/Ignition
+short_description: Ansible Module for interfacing with the openshift-installer
 
-# If this is part of a collection, you need to use semantic versioning,
-# i.e. the version is of the form "2.5.0" and not "2.4".
 version_added: "1.0.0"
 
 description: When working with Red Hat CoreOS and Red Hat OpenShift,
-    utilizing Butane keeps configuration human-readable and machine-processable.
-    Butane is a utility to convert from YAML-based Butane into JSON-based Ignition.
+    this module allows calling the openshift-install program.
 
 options:
-    src:
-        description: Butane configuration to be converted.
+    command:
+        description: Commands for execution
         required: true
         type: str
-    dest:
-        description: MachineConfig/Ignition output file
-            - If 'raw' is set, produce an Ignition file.
-            - By default, produce a MachineConfig.
+        choices:
+            - create_cluster
+            - destroy_cluster
+    dir:
+        description: Assets directory
+        required: false
+        type: string
+    log_level:
+        description: level of output of STDOUT 
         required: false
         type: str
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-# extends_documentation_fragment:
-#     - my_namespace.my_collection.my_doc_fragment_name
+        choices:
+            - debug
+            - info
+            - warn
+            - error
+        default: info
 
 author:
     - Sean Nelson (@hyperkineticnerd)
 '''
+
 
 EXAMPLES = r'''
 # Pass in a message
@@ -57,6 +63,7 @@ EXAMPLES = r'''
     name: fail me
 '''
 
+
 RETURN = r'''
 # These are examples of possible return values, and in general should use other names for return values.
 original_message:
@@ -71,6 +78,7 @@ message:
     sample: 'goodbye'
 '''
 
+
 from ansible.module_utils.basic import AnsibleModule
 import subprocess
 
@@ -78,13 +86,9 @@ import subprocess
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        src=dict(type='str', required=True),
-        dest=dict(type='str', required=False, default=''),
-        check=dict(type='bool', required=False, default=False),
-        pretty=dict(type='bool', required=False, default=False),
-        raw=dict(type='bool', required=False, default=False),
-        strict=dict(type='bool', required=False, default=False),
-        version=dict(type='bool', required=False, default=False)
+        command=dict(type='str', required=True),
+        dir=dict(type='str', required=False, default='.'),
+        log_level=dict(type='str', required=False, default='info')
     )
 
     # seed the result dict in the object
@@ -114,30 +118,32 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
         
-    subproc_cmd = ["butane"]
+    subproc_cmd = ["openshift-install"]
 
-    if module.params['dest']:
+    if module.params['log_level']:
         subproc_cmd += [
-            "--output",
-            module.params['dest'],
+            "--log-level",
+            module.params['log_level'],
         ]
 
-    # if module.params['check']:
-    #     subproc_cmd += ["--check",]
+    if module.params['dir']:
+        subproc_cmd += [
+            "--dir",
+            module.params['dir'],
+        ]
 
-    if module.params['pretty']:
-        subproc_cmd += ["--pretty",]
-
-    if module.params['raw']:
-        subproc_cmd += ["--raw",]
-
-    if module.params['strict']:
-        subproc_cmd += ["--strict",]
-
-    if module.params['version']:
-        subproc_cmd += ["--version",]
-
-    subproc_cmd += [module.params['src']]
+    if module.params['command'] == 'create_cluster':
+        subproc_cmd += [
+            "create",
+            "cluster",
+        ]
+    elif module.params['command'] == 'destroy_cluster':
+        subproc_cmd += [
+            "destroy",
+            "cluster",
+        ]
+    else:
+        module.exit_json(**result)
 
     subproc_ret = subprocess.run(subproc_cmd, capture_output=True)
 
@@ -154,7 +160,7 @@ def run_module():
 
     # use whatever logic you need to determine whether or not this module
     # made any modifications to your target
-    if module.params['src']:
+    if module.params['command']:
         result['changed'] = True
 
     # during the execution of the module, if there is an exception or a
